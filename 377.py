@@ -1,7 +1,6 @@
 import pygame
 import math
 
-
 pygame.init()
 
 SCREEN_WIDTH = 800
@@ -9,9 +8,7 @@ SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Pac-Man следует за курсором")
 
-
 BACKGROUND = (0, 0, 0)
-
 
 try:
     pacman_images = {
@@ -28,25 +25,47 @@ try:
     for key in pacman_images:
         pacman_images[key] = pygame.transform.scale(pacman_images[key], (40, 40))
 except:
-
+    # Создаем заглушки для всех направлений
     pacman_images = {
         "up": pygame.Surface((40, 40), pygame.SRCALPHA),
-
+        "down": pygame.Surface((40, 40), pygame.SRCALPHA),
+        "left": pygame.Surface((40, 40), pygame.SRCALPHA),
+        "right": pygame.Surface((40, 40), pygame.SRCALPHA),
+        "up_left": pygame.Surface((40, 40), pygame.SRCALPHA),
+        "up_right": pygame.Surface((40, 40), pygame.SRCALPHA),
+        "down_left": pygame.Surface((40, 40), pygame.SRCALPHA),
+        "down_right": pygame.Surface((40, 40), pygame.SRCALPHA)
     }
 
+    # Рисуем желтые круги для всех направлений
     for key in pacman_images:
         pygame.draw.circle(pacman_images[key], (255, 255, 0), (20, 20), 20)
 
+        # Добавляем "рот" для каждого направления
+        if key == "up":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (40, 0), (0, 0)])
+        elif key == "down":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (40, 40), (0, 40)])
+        elif key == "left":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (0, 40), (0, 0)])
+        elif key == "right":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (40, 0), (40, 40)])
+        elif key == "up_left":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (0, 0), (10, 0), (0, 10)])
+        elif key == "up_right":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (40, 0), (30, 0), (40, 10)])
+        elif key == "down_left":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (0, 40), (10, 40), (0, 30)])
+        elif key == "down_right":
+            pygame.draw.polygon(pacman_images[key], (0, 0, 0), [(20, 20), (40, 40), (30, 40), (40, 30)])
 
 pacman_pos = [SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2]
 speed = 4
 
 
-
 def get_direction(pos1, pos2):
     dx = pos2[0] - pos1[0]
     dy = pos2[1] - pos1[1]
-
 
     if abs(dx) < 2 and abs(dy) < 2:
         return "right"
@@ -71,7 +90,6 @@ def get_direction(pos1, pos2):
         return "right"
 
 
-# Функция движения к цели
 def move_towards(pos1, pos2, speed):
     x1, y1 = pos1
     x2, y2 = pos2
@@ -79,7 +97,6 @@ def move_towards(pos1, pos2, speed):
     dy = y2 - y1
     distance = max(1, math.sqrt(dx * dx + dy * dy))
 
-    # Плавное движение
     if distance > speed:
         x1 += dx * speed / distance
         y1 += dy * speed / distance
@@ -89,7 +106,6 @@ def move_towards(pos1, pos2, speed):
     return (x1, y1)
 
 
-# Игровой цикл
 clock = pygame.time.Clock()
 FPS = 60
 running = True
@@ -99,19 +115,20 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Получаем позицию курсора
     mouse_pos = pygame.mouse.get_pos()
-
-    # Определяем направление и двигаем Pac-Man
     direction = get_direction(pacman_pos, mouse_pos)
     pacman_pos = move_towards(pacman_pos, mouse_pos, speed)
 
-    # Отрисовка
     screen.fill(BACKGROUND)
 
-    # Рисуем Pac-Man с учетом направления
-    pacman_rect = pacman_images[direction].get_rect(center=pacman_pos)
-    screen.blit(pacman_images[direction], pacman_rect)
+    # Проверяем, существует ли направление в словаре
+    if direction in pacman_images:
+        pacman_rect = pacman_images[direction].get_rect(center=pacman_pos)
+        screen.blit(pacman_images[direction], pacman_rect)
+    else:
+        # Если направление не найдено, используем направление по умолчанию
+        pacman_rect = pacman_images["right"].get_rect(center=pacman_pos)
+        screen.blit(pacman_images["right"], pacman_rect)
 
     pygame.display.flip()
     clock.tick(FPS)
